@@ -1,8 +1,4 @@
 // express 
-const Contenedor = require("./main.js");
-
-const productos = new Contenedor("archivoDesafio.txt");
-
 const express = require('express');
 const { Router } = express
 
@@ -16,63 +12,110 @@ app.use(express.urlencoded({
     extended: true
 }))
 
+const productos = [
+    {
+    title: "Escuadra",
+    price: 123.45,
+    thumbnail: "https://cdn3.iconfinder.com/data/icons/education-209/64/ruler-triangle-stationary-school-256.png",
+    id: 1
+    },
+    {
+        title: "Calculadora",
+        price: 234.56,
+        thumbnail: "https://cdn3.iconfinder.com/data/icons/education-209/64/calculator-math-tool-school-256.png",
+        id: 2
+    },
+    {
+        title: "Globo Terráqueo",
+        price: 345.67,
+        thumbnail: "https://cdn3.iconfinder.com/data/icons/education-209/64/globe-earth-geograhy-planet-school-256.png",
+        id: 3
+    }
+]
 
-router.get('/productos', async (request, response) => {
-    const productosArchivo = await productos.getAll();
-    response.json(
-        JSON.parse(productosArchivo)
-    );
+const getId = () => {
+    const pos = productos.length;
+    return productos[pos - 1].id + 1
+}
+
+const productoId = (id) => {
+    return productos.find( producto => producto.id == id)
+}
+
+
+router.get('/productos', (request, response) => {
+    response.json(productos);
 })
 
-router.get('/productos/:id', async (request, response) => {
+
+
+router.get('/productos/:id', (request, response) => {
     const id = request.params.id
-    let mensaje = {}
-    if(await productos.getById(id)){
-        const productoArchivo = await productos.getById(id);
-        mensaje = {"producto" : productoArchivo } 
+    let mensaje = ''
+    const productoExiste = productoId(id);
+    if(productoExiste){
+        mensaje = producto
     }else{
-        mensaje = {'error' : 'no existe ese producto'}
+        throw new Error('No existe ese producto');
     }
     response.json(mensaje)
 })
 
-router.get('/productoRandom', async (request, response) => {
-    const productoRandom = await productos.getRandom();
-    response.json(
-        productoRandom
-    );
-
-})
 
 
-router.post('/productos', async (request, response) => {
+router.post('/productos', (request, response) => {
     const producto = request.body;
-    const idNuevoProducto = await productos.save(producto)
+    const productoNuevo = {
+        ...producto,
+        id : getId()
+    }
+    productos.push(productoNuevo);
     response.json(
-        idNuevoProducto.toString()
+        producto
     );
 })
 
-router.put('/productos/:id' , async (request , response) => {
+router.put('/productos/:id' , (request , response) => {
     const id = request.params.id
     let mensaje = ''
-    if(await productos.getById(id)){
-        const productoActualizado = request.body;
-        await productos.updateItem(productoActualizado, id)
-        mensaje = {'actualizado' :'se actualizo'}
+    const productoExiste = productoId(id);
+    if(productoExiste){
+        if(request.body){
+            const {title, price, thumbnail} = request.body;
+            const productoActualizar ={
+                title : title,
+                price: price,
+                thumbnail : thumbnail,
+                id : Number(id)
+            }
+            for (let i = 0; i < productos.length; i++) {
+                if(id == productos[i].id){
+                    productos[i] = productoActualizar
+                }
+            }
+            mensaje = productoActualizar
+        }else{
+            mensaje = {'error' :'no hay que actualizar'}
+        }
     }else{
-        mensaje = {'error' : 'no existe ese producto'}
+        throw new Error('No existe ese producto');
     }
     response.json(mensaje)
 })
-router.delete('/productos/:id' , async (request , response) => {
+
+router.delete('/productos/:id' , (request , response) => {
     const id = request.params.id
     let mensaje = ''
-    if(await productos.getById(id)){
-        await productos.deleteById(id)
+    const productoExiste = productoId(id);
+    if(productoExiste){
+        for (let i = 0; i < productos.length; i++) {
+            if(id == productos[i].id){
+                productos.splice(i, 1);
+            }
+        }
         mensaje = {"eliminado" : 'se elimino'}
     }else{
-        mensaje = {'error' : 'no existe ese producto'}
+        throw new Error('No existe ese producto');
     }
     response.json(mensaje)
 })
