@@ -48,7 +48,7 @@ router.get('/productos/:id', (request, response) => {
         response.json(mensaje)
     }else{
         mensaje = { error: 'No existe ese producto' };
-        response.status(400).json(mensaje);
+        response.status(404).json(mensaje);
     }
 })
 
@@ -80,7 +80,7 @@ router.put('/productos/:id' , (request , response) => {
         }
     }else{
         mensaje = { error: 'No existe ese producto' };
-        response.status(400).json(mensaje);
+        response.status(404).json(mensaje);
     }
 })
 
@@ -94,7 +94,7 @@ router.delete('/productos/:id' , (request , response) => {
         response.json(mensaje)
     }else{
         mensaje = { error: 'No existe ese producto' };
-        response.status(400).json(mensaje);
+        response.status(404).json(mensaje);
     }
 })
 
